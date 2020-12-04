@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Assignmet </title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:900|Work+Sans:300" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+    <script>
+        $(function() {
+
+            $("#course-select").change(function() {
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+                $("#assignment-select").empty();
+                $("#assignment-select").append("<option  id='deMuAs'>Please select the corresponding assignment</option>");
+
+                $("#schedule").empty();
+
+                let id = $("#course-select option:selected").attr("id");
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'api/getAssignmentList',
+                    data: {courseId : id},
+                    contentType: "application/json",
+                    success: function(res) {
+                        for (var i = 0; i < res.length; i++) {
+                            $("#assignment-select").append("<option id="+res[i].id+">" + res[i].name + "</option>");
+                        }
+
+                    }
+                });
+            });
+
+            $("#assignment-select").change(function() {
+
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+                var cid = $("#course-select option:selected").attr("id");
+                var aid = $("#assignment-select option:selected").attr("id");
+                $("#courseId").val(cid);
+                $("#assignmentId").val(aid);
+
+                $("#schedule").empty();
+
+                let myuni_dir = cid +"/"+aid;
+                $("#myuni_dir").val(myuni_dir);
+                // alert(myuni_dir);
+                let deWsAs = $("#websub-assignment-select option:selected").attr("id");
+
+                if ( $("#myuni_dir").val() != '' && $("#websub_dir").val() != '' && aid != 'deMuAs' && deWsAs != 'deWsAs'&& aid != 'dema' && deWsAs != 'dewa') {
+
+                    $("#schedule").append("<h4 style='margin-bottom: 10px;'>Set up a scheduled task</h4><input id='setAutoSyncButton' type='button' value='Click' onclick='findSchedule()' ></input>");
+                    $("#schedule").append("<div id='orSign'><br>Or</div>");
+                    $("#syncbtn").prop('disabled', false);
+
+                }
+
+
+
+            });
+
+            $("#websub-year-select").change(function() {
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+                $("#websub-semester-select").empty();
+                $("#websub-semester-select").append("<option>Please select a teaching period on WebSubmission</option>");
+                $("#websub-course-select").empty();
+                $("#websub-course-select").append("<option>Please select a course on WebSubmission</option>");
+                $("#websub-assignment-select").empty();
+                $("#websub-assignment-select").append("<option>Please select an assignment on WebSubmission</option>");
+
+                let year = $("#websub-year-select option:selected").attr("id");
+
+                $("#schedule").empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'getWebSubSemesterList',
+                    data: {year : year},
+                    contentType: "application/json",
+                    success: function(res) {
+                        for (var i = 0; i < res.length; i++) {
+                            $("#websub-semester-select").append("<option id="+res[i].name+">" + res[i].name + "</option>");
+                        }
+
+                    }
+                });
+            });
+
+            $("#websub-semester-select").change(function() {
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+                $("#websub-course-select").empty();
+                $("#websub-course-select").append("<option>Please select a course on WebSubmission</option>");
+                $("#websub-assignment-select").empty();
+                $("#websub-assignment-select").append("<option>Please select an assignment on WebSubmission</option>");
+
+                let year = $("#websub-year-select option:selected").attr("id");
+                let semester = $("#websub-semester-select option:selected").attr("id");
+
+                $("#schedule").empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'getWebSubCourseList',
+                    data: {semester : semester, year : year},
+                    contentType: "application/json",
+                    success: function(res) {
+                        for (var i = 0; i < res.length; i++) {
+                            $("#websub-course-select").append("<option id="+res[i].name+">" + res[i].name + "</option>");
+                        }
+
+                    }
+                });
+            });
+
+            $("#websub-course-select").change(function() {
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+                $("#websub-assignment-select").empty();
+                $("#websub-assignment-select").append("<option id='deWsAs'>Please select an assignment on WebSubmission</option>");
+
+                let year = $("#websub-year-select option:selected").attr("id");
+                let semester = $("#websub-semester-select option:selected").attr("id");
+                let course = $("#websub-course-select option:selected").attr("id");
+
+                $("#schedule").empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'getWebSubAssignmentList',
+                    data: {semester : semester, year : year, course : course},
+                    contentType: "application/json",
+                    success: function(res) {
+                        for (var i = 0; i < res.length; i++) {
+                            $("#websub-assignment-select").append("<option id="+res[i].name+">" + res[i].name + "</option>");
+                        }
+
+                    }
+                });
+            });
+
+            $("#websub-assignment-select").change(function() {
+                $("#syncmsg").remove();
+                $("#syncbtn").prop('disabled', true);
+
+                let year = $("#websub-year-select option:selected").attr("id");
+                let semester = $("#websub-semester-select option:selected").attr("id");
+                let course = $("#websub-course-select option:selected").attr("id");
+                let assignment = $("#websub-assignment-select option:selected").attr("id");
+
+                $("#websubYear").val(year);
+
+                $("#websubSemester").val(semester);
+                $("#websubCourse").val(course);
+                $("#websubAssignment").val(assignment);
+
+                $("#schedule").empty();
+
+                let myUniAid = $("#assignment-select option:selected").attr("id");
+                let websub_dir = year +"/"+semester+"/"+course+"/"+assignment;
+                $("#websub_dir").val(websub_dir);
+
+                if ( $("#myuni_dir").val() != '' && $("#websub_dir").val() != '' && assignment != 'deWsAs' && myUniAid != 'deMuAs' && myUniAid != 'dema' && assignment != 'dewa') {
+
+                    $("#schedule").append("<h4 style='margin-bottom: 10px;'>Set up a scheduled task</h4><input id='setAutoSyncButton' type='button' value='Click' onclick='findSchedule()' ></input>");
+                    // $("#syncbtndiv").append("<input type='submit'  id='syncbtn' value='Sync Now' class='btn btn-primary'  />");
+                    $("#schedule").append("<div id='orSign'><br>Or</div>");
+                    $("#syncbtn").prop('disabled', false);
+                }
+
+            });
+
+        });
+
+        function sync() {
+            $.ajax({
+                type: 'GET',
+                url: 'sync',
+                data: {assignmentId : $("#assignmentId").val(), courseId : $("#courseId").val() , websubDir : $("#websub_dir").val()},
+                contentType: "application/json",
+                success: function(res) {
+                    if (res == 'ok'){
+                        window.location.href = '/thankyou';
+                    } else {
+                        console.log('msg:'+res);
+                        $("#syncbtndiv").append("<span id='syncmsg' style='color:red'  >"+ res + " </span><br>");
+                    }
+
+
+                }
+            });
+        }
+
+        function findSchedule() {
+            $("#notification").remove();
+            $.ajax({
+                type: 'GET',
+                url: 'getSchedule',
+
+                data: {myuniDir : $("#myuni_dir").val() , websubDir : $("#websub_dir").val()},
+                contentType: "application/json",
+                success: function(res) {
+
+                    let dateAndTime = new Date().toLocaleString('en-GB');
+
+                    dateAndTime = dateAndTime.substring(5,10) + '-' + dateAndTime.substring(3,5) + '-' + dateAndTime.substring(0,2) + ' ' +
+                        new Date().toLocaleTimeString('en-GB').substring(0,5);
+
+                    let fre = 1;
+                    if (res != '0') {
+                        // dateAndTime = res.endDate.substring(0,10) + ' '
+                        //     + res.endDate.substring(11,16);
+
+                        dateAndTime = res.endDate.substring(0,10);
+                        fre = res.frequency;
+                    }
+                    $("#setAutoSyncButton").remove();
+                    $("#orSign").remove();
+
+                    $("#schedule").append("<div id='date-frequency-select'>  Every <select  id=\"frequency\">\n" +
+                        "                        <option>1</option>\n" +
+                        "                        <option>2</option>\n" +
+                        "                        <option>3</option>\n" +
+                        "                        <option>4</option>\n" +
+                        "                        <option>6</option>\n" +
+                        "                        <option>8</option>\n" +
+                        "                        <option>12</option>\n" +
+                        "                        <option>24</option>\n" +
+                        "                    </select> hour(s) until <input type='text' name='dates' id='dates'style='width:100px;' /> <br> </div>");
+                    // $("#schedule").append("  Every <input id='frequency' type='number' max='24' min='1' value='set' style='width:40px;'></input> hour(s) <br>");
+
+                    $("#dates").val(dateAndTime);
+                    $("#frequency").val(fre);
+                    if (res != 0) {
+                        $("#schedule").append("<input id='setSchedulecButton' type='button' value='Update' onclick='setSchedule(1)' ></input>");
+                        $("#schedule").append("<input id='deleteSchedulecButton' type='button' value='Delete' onclick='deleteSchedule()' ></input>");
+                    } else {
+                        $("#schedule").append("<input id='setSchedulecButton' type='button' value='Set' onclick='setSchedule(2)' ></input>");
+                    }
+                    $("#schedule").append("<input id='closeSettingButton' type='button' value='Close' onclick='closeSetting()' ></input>");
+                    $("#schedule").append("<div id='orSign'><br>Or</div>");
+
+                    $('input[name="dates"]').daterangepicker({
+                        singleDatePicker: true,
+                        showDropdowns: true,
+                        // timePicker: true,
+                        // timePicker24Hour: true,
+                        locale: {
+                            // format: 'YYYY-MM-DD HH:mm'
+                            format: 'YYYY-MM-DD '
+                        }
+                    })
+
+                }
+            });
+        }
+        function closeSetting() {
+
+            $("#schedule").empty();
+            $("#schedule").append("<h4 style='margin-bottom: 10px;'>Set up a scheduled task</h4><input id='setAutoSyncButton' type='button' value='Click' onclick='findSchedule()' ></input>");
+            $("#schedule").append("<div id='orSign'><br>Or</div>");
+        }
+
+        function deleteSchedule() {
+            $("#notification").remove();
+            $("#orSign").remove();
+            $.ajax({
+                type: 'GET',
+                url: 'deleteSchedule',
+                data: {myuniDir : $("#myuni_dir").val() , websubDir : $("#websub_dir").val()},
+                contentType: "application/json",
+                success: function(res) {
+                    console.log(res)
+                    if (res == '1' ) {
+
+                        $('#setSchedulecButton').remove();
+                        $('#deleteSchedulecButton').remove();
+                        $('#date-frequency-select').remove();
+                        $('#closeSettingButton').remove();
+
+                        $("#schedule").append("<span id='notification'   >Succeeded</span>");
+                        $("#schedule").append("<input id='setAutoSyncButton' type='button' value='Reset' onclick='findSchedule()' ></input>");
+                    } else {
+                        $("#schedule").append("<span id='notification' style='color:red'  >Failed, please try again</span><br>");
+                    }
+                    $("#schedule").append("<div id='orSign'><br>Or</div>");
+                }
+            });
+        }
+
+        function setSchedule(code) {
+            $("#orSign").remove();
+
+            $("#notification").remove();
+            let endDateAndTime = $('input[name="dates"]').val().split(' ');
+            let endDate = endDateAndTime[0].trim();
+            // endDate = endDate.substring(0,10) + 'T' + endDateAndTime[1].trim()+ ':59.851Z';
+            endDate = endDate.substring(0,10);
+
+            let time = endDateAndTime[1].trim();
+            let frequency = $('#frequency option:selected').val();
+            console.log($("#myuni_dir").val()+''+endDate+ ' '+ time+ ' '+ frequency);
+
+            $.ajax({
+                type: 'GET',
+                url: 'setSchedule',
+                data: {myuniDir : $("#myuni_dir").val() , websubDir : $("#websub_dir").val(),
+                    endDate: endDate, time: time, frequency: frequency, code: code},
+                contentType: "application/json",
+                success: function(res) {
+                    console.log(res)
+                    if (res == '1' ) {
+
+                        $('#setSchedulecButton').remove();
+                        $('#deleteSchedulecButton').remove();
+                        $("#schedule").append("<span id='notification'   >Succeeded. </span>");
+                        $("#schedule").append("<input id='setSchedulecButton' type='button' value='Update' onclick='setSchedule(1)' ></input>");
+                        $("#schedule").append("<input id='deleteSchedulecButton' type='button' value='Delete' onclick='deleteSchedule()' ></input>");
+                    } else {
+                        if (res == '0') {
+                            $("#schedule").append("<span id='notification' style='color:red'  >Failed, please try again. </span><br>");
+                        } else {
+                            $("#schedule").append("<span id='notification' style='color:red'  >Failed, sync for this assignment already exists. </span><br>");
+                        }
+                    }
+                    $("#schedule").append("<div id='orSign'><br>Or</div>");
+                }
+            });
+        }
+
+
+    </script>
+</head>
+
+
+<body style="background-color: white;">
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="/">GradeSync</a>
+<!--              <img class = "logo" src="/assets/the-university-of-adelaide.png">-->
+          </div>
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="/upload">Assignment</a></li>
+            <li><a href="/logout">Log out</a></li>
+<!--            <li><a href="/register">Register</a></li>-->
+            <li><a href="/settings">Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+
+
+<body>
+
+
+
+    <div class="container" style="background-color: white; padding-right: 10vh; padding-left: 10vh; border-radius: 10px;">
+        <h3 style="margin-bottom: 10px;">Web Submission</h3>
+
+        <form action="/sync" enctype="multipart/form-data" method="post">
+
+            <div>
+                <label for="sel1" style="color: grey;">Year:</label>
+                <select class="form-control" id="websub-year-select">
+                    <option>Please select a year on WebSubmission</option>
+                    <% rt.forEach(function(rtt){%>
+                    <option id="<%=rtt.name %>"><%=rtt.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <br>
+
+            <div>
+                <label for="sel1" style="color: grey;">Teaching Period:</label>
+                <select class="form-control" id="websub-semester-select">
+                    <option>Please select a teaching period on WebSubmission</option>
+
+                </select>
+            <br>
+
+            <div>
+                <label for="sel1" style="color: grey;">Course:</label>
+                <select class="form-control" id="websub-course-select">
+                    <option>Please select a course on WebSubmission</option>
+                </select>
+            </div>
+            <br>
+
+            <div>
+                <label for="sel1" style="color: grey;">Assignment:</label>
+                <select class="form-control" id="websub-assignment-select">
+                    <option id="dewa">Please select an assignment on WebSubmission</option>
+                </select>
+            </div>
+                <h3 style="margin-bottom: 10px;">MyUni</h3>
+
+            <div>
+                <label for="sel1" style="color: grey;">Course:</label>
+                <select class="form-control" id="course-select">
+                    <option>Please select the corresponding course</option>
+                    <% rd.forEach(function(rdd){%>
+                    <option id="<%=rdd.id %>"><%=rdd.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <br>
+            <div>
+                <label for="sel1" style="color: grey;">Assignment:</label>
+                <select class="form-control" id="assignment-select">
+                    <option id="dema">Please select the corresponding assignment</option>
+                </select>
+            </div>
+    
+            <br>
+
+            <div><input readonly type="hidden" name="courseId" id="courseId" /></div>
+            <div><input readonly type="hidden" name="assignmentId" id="assignmentId" /></div>
+            <div><input readonly type="hidden" name="websubYear" id="websubYear" /></div>
+            <div><input readonly type="hidden" name="websubSemester" id="websubSemester" /></div>
+            <div><input readonly type="hidden" name="websubCourse" id="websubCourse" /></div>
+            <div><input readonly type="hidden" name="websubAssignment" id="websubAssignment" /></div>
+
+            <div><input readonly type="hidden" name="websub_dir" id="websub_dir" /></div>
+            <div><input readonly type="hidden" name="myuni_dir" id="myuni_dir" /></div>
+
+
+            <div id="schedule">
+
+            </div>
+            <br>
+<!--            <div style="color: grey;">File: <input type="file" class="form-control-file" name="multipleFiles" multiple="multiple" /></div>-->
+<!--            <br>-->
+
+                <div id="syncbtndiv">
+                    <input type='button' onclick='sync()' disabled  id='syncbtn' value='Sync Now' class='btn btn-primary'  />
+                </div>
+
+            </div>
+            
+         </form>
+    </div>
+    
+
+    
+    
+    
+
+</body>
+</html>
